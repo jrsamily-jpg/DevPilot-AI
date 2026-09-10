@@ -1,0 +1,14 @@
+{
+  "name": "devpilot-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DevPilot AI full-stack product prototype",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js",
+    "test": "npm run check"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
