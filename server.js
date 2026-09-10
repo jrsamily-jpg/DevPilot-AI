@@ -11,6 +11,7 @@ const HOST = process.env.HOST || '127.0.0.1';
 const STAGES = ['Understand', 'Plan', 'Implement', 'Verify', 'Ship'];
 const WORKSPACE_ROOT = path.resolve(process.env.DEVPILOT_WORKSPACE_ROOT || ROOT);
 const CODEX_BIN = process.env.CODEX_BIN || '/Applications/Codex.app/Contents/Resources/codex';
+const API_TOKEN = process.env.DEVPILOT_API_TOKEN || '';
 const agentProcesses = new Map();
 const PROVIDERS = new Set(['github', 'gitlab', 'slack', 'jira', 'vercel', 'aws']);
 const MIME = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.json':'application/json; charset=utf-8'};
@@ -31,6 +32,15 @@ function writeState(state) {
 function json(res, status, payload) {
   res.writeHead(status, {'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
   res.end(JSON.stringify(payload));
+}
+
+function authorized(req) {
+  if (!API_TOKEN) return true;
+  const value = String(req.headers.authorization || '');
+  const provided = value.startsWith('Bearer ') ? value.slice(7) : '';
+  const expectedBuffer = Buffer.from(API_TOKEN);
+  const providedBuffer = Buffer.from(provided);
+  return expectedBuffer.length === providedBuffer.length && crypto.timingSafeEqual(expectedBuffer, providedBuffer);
 }
 
 function readBody(req) {
@@ -163,7 +173,7 @@ mutateState(state => {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
-  try { if (url.pathname.startsWith('/api/')) await api(req, res, url); else staticFile(req, res, url); }
+  try { if (url.pathname.startsWith('/api/')) { if (url.pathname !== '/api/health' && !authorized(req)) return json(res, 401, {error:'Private runtime authorization required.'}); await api(req, res, url); } else staticFile(req, res, url); }
   catch (error) { json(res, error.message === 'Payload too large' ? 413 : 400, {error:error.message || 'Request failed.'}); }
 });
 

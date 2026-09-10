@@ -5,10 +5,15 @@
   "description": "DevPilot AI full-stack product prototype",
   "scripts": {
     "start": "node server.js",
+    "build": "node scripts/build.mjs",
     "check": "node --check server.js",
     "test": "npm run check"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.13"
+  },
+  "devDependencies": {
+    "@openai/sites-vite-plugin": "0.2.0",
+    "vite": "8.3.0"
   }
 }
