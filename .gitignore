@@ -4,6 +4,10 @@
 !.env.example
 node_modules/
 dist/
+.next/
+.wrangler/
+public/devpilot.html
+public/assets/
 npm-debug.log*
 data/state.json
 *.log
